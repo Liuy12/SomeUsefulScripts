@@ -37,12 +37,24 @@ heatmap.my <- function(Exprs, sel=F, thres_mean, thres_var, numbreaks=100, col =
     }
 
   }
-  rg <- range(Exprs_scale,na.rm=T)
-  bp <- c(rg[1]+(breakratio[1]/sum(breakratio))*diff(rg), rg[2] - (breakratio[3]/sum(breakratio))*diff(rg))
-  bk <- c(seq(rg[1],bp[1],length=numbreaks), seq(bp[1],bp[2],length=numbreaks),seq(bp[2],rg[2],length=numbreaks))
-  hmcols<- colorRampPalette(col)(length(bk)-1)
+  rg <- quantile(Exprs_scale,na.rm=T)
+  rg_diff <- rg[4]-rg[2]
+  rg_max <- max(abs(rg))
+  Exprs_sd <- sd(Exprs_scale)
+  Exprs_mean <- mean(Exprs_scale)
+  if(rg_max > max(Exprs_mean + 3*Exprs_sd, Exprs_mean - 3*Exprs_sd)){
+    rg_iqr <- max(abs(c(rg[2], rg[4])))
+    bp <- c((breakratio[1]/sum(breakratio))*rg_diff - rg_iqr, rg_iqr - (breakratio[3]/sum(breakratio))*rg_diff)
+    bk <- c(seq(-rg_max, -rg_iqr, length= numbreaks), seq(-rg_iqr,bp[1],length = numbreaks), seq(bp[1],bp[2],length=numbreaks),seq(bp[2],rg_iqr,length=numbreaks), 
+            seq(rg_iqr, rg_max, length = numbreaks))
+    hmcols<- colorRampPalette(col)(length(bk)-1)
+  }
+  else{
+    bp <- c((breakratio[1]/sum(breakratio))*diff(rg) - rg_max, rg_max - (breakratio[3]/sum(breakratio))*diff(rg))
+    bk <- c(seq(-rg_max,bp[1],length=numbreaks), seq(bp[1],bp[2],length=numbreaks),seq(bp[2],rg_max,length=numbreaks))
+    hmcols<- colorRampPalette(col)(length(bk)-1)
+  }
   heatmap.2(Exprs, Colv=Colv,Rowv=Rowv, dendrogram = dendrogram,trace='none',scale=scale ,density.info='none',
             lmat=lmat,lwid=lwid,lhei=lhei,labRow=labRow,labCol=labCol,col=hmcols,breaks=bk, 
             ColSideColors=colsidebar) 
-  options(warn=0)
 }
