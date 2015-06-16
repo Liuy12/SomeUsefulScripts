@@ -2,7 +2,10 @@ heatmap.my <- function(Exprs, sel=F, thres_mean, thres_var, numbreaks=100, col =
                        breakratio = c(2,1,2), colsidebar, Colv=F, Rowv=T, scale= 'row', labRow=F, 
                        labCol=F, dendrogram = 'row'){
   suppressPackageStartupMessages(invisible(require('gplots', quietly=TRUE)))
-  options(warn=-1)
+  if(labRow)
+    labRow <- rownames(Exprs)
+  if(labCol)
+    labCol <- colnames(Exprs)
   if(sel){
     gene_mean <- apply(Exprs,1,mean)
     gene_var <- apply(Exprs,1,var)
@@ -19,18 +22,29 @@ heatmap.my <- function(Exprs, sel=F, thres_mean, thres_var, numbreaks=100, col =
   # 3 Column dendrogram,
   # 4 Key
   if(missing(colsidebar)){
-  lmat <- rbind(c(0,4),c(2,1),c(0,3))
+  lmat <- rbind(c(0,4), c(0,3), c(2,1))
   lwid <- c(1,4)
-  lhei <- c(1,4,0.1)
+  lhei <- c(1,0.1,4)
+  if(class(Colv) == 'dendrogram'){
+    lhei <- c(1,1,4)
+    dendrogram <- 'both'
+  }
   }
   else{
-    if(Colv){
+    if(class(Colv) == 'dendrogram'){
+      # 4 is column dendrogram, 5 is key, 1 is colcolorkey
       lmat <- rbind(c(0,5),c(0,4), c(3,2),c(0,1))
       lwid <- c(1,4)
       lhei <- c(1,1, 4,0.25)
       dendrogram <- 'both'
     }
     else{
+      if(Colv){
+        lmat <- rbind(c(0,5),c(0,4), c(3,2),c(0,1))
+        lwid <- c(1,4)
+        lhei <- c(1,1, 4,0.25)
+        dendrogram <- 'both'
+      }
       lmat <- rbind(c(0,5),c(0, 1), c(3,2),c(0,4))
       lwid <- c(1,4)
       lhei <- c(1,0.25,4,0.1)
@@ -42,7 +56,7 @@ heatmap.my <- function(Exprs, sel=F, thres_mean, thres_var, numbreaks=100, col =
   rg_max <- max(abs(rg))
   Exprs_sd <- sd(Exprs_scale)
   Exprs_mean <- mean(Exprs_scale)
-  if(rg_max > max(Exprs_mean + 3*Exprs_sd, Exprs_mean - 3*Exprs_sd)){
+  if(rg_max > max(abs(c(Exprs_mean + 3*Exprs_sd, Exprs_mean - 3*Exprs_sd)))){
     rg_iqr <- max(abs(c(rg[2], rg[4])))
     bp <- c((breakratio[1]/sum(breakratio))*rg_diff - rg_iqr, rg_iqr - (breakratio[3]/sum(breakratio))*rg_diff)
     bk <- c(seq(-rg_max, -rg_iqr, length= numbreaks), seq(-rg_iqr,bp[1],length = numbreaks), seq(bp[1],bp[2],length=numbreaks),seq(bp[2],rg_iqr,length=numbreaks), 
@@ -50,6 +64,7 @@ heatmap.my <- function(Exprs, sel=F, thres_mean, thres_var, numbreaks=100, col =
     hmcols<- colorRampPalette(col)(length(bk)-1)
   }
   else{
+    rg <- range(Exprs_scale, na.rm=T)
     bp <- c((breakratio[1]/sum(breakratio))*diff(rg) - rg_max, rg_max - (breakratio[3]/sum(breakratio))*diff(rg))
     bk <- c(seq(-rg_max,bp[1],length=numbreaks), seq(bp[1],bp[2],length=numbreaks),seq(bp[2],rg_max,length=numbreaks))
     hmcols<- colorRampPalette(col)(length(bk)-1)
