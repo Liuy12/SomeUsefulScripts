@@ -1,6 +1,6 @@
 pcaplot<-function (x, subset = NULL, cv.Th = 0.1, var.Th = 0, mean.Th =0, standardize = TRUE,
                    method = c("cluster", "mds","pca"), dimension = c(1,2,3), color = 'black', princurve=F,lwd=1,normals=NULL,col.curve='red', 
-                   text, main = NULL, ...)
+                   text, main = NULL, psi = 4, type = 'p', ...)
 {
   
   if (is.matrix(x)) {
@@ -75,7 +75,7 @@ pcaplot<-function (x, subset = NULL, cv.Th = 0.1, var.Th = 0, mean.Th =0, standa
                                                 dimension[2], " (", percent[dimension[2]], "%)",
                                                 sep = ""),zlab = paste("Principal Component ",
                                                                        dimension[3], " (", percent[dimension[3]], "%)",
-                                                                       sep = ""), main = main,size=5,col=color)
+                                                                       sep = ""), main = main,size=psi,col=color, type = type)
     if(princurve){
       start<-aggregate(ppoints[,1:3],by=list(rank(!normals)),FUN=mean)
       start <- as.matrix(start[, -1])
@@ -112,7 +112,7 @@ pcaplot<-function (x, subset = NULL, cv.Th = 0.1, var.Th = 0, mean.Th =0, standa
                                                 dimension[2], " (", percent[dimension[2]], "%)",
                                                 sep = ""),zlab = paste("Principal Component ",
                                                                        dimension[3], " (", percent[dimension[3]], "%)",
-                                                                       sep = ""), main = main,size=4,col=color)
+                                                                       sep = ""), main = main,size=psi,col=color, type = type)
     if(princurve){
       start<-aggregate(ppoints[,1:3],by=list(rank(!normals)),FUN=mean)
       start <- as.matrix(start[, -1])
