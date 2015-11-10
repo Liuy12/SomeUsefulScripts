@@ -87,7 +87,7 @@ pcaplot<-function (x, subset = NULL, cv.Th = 0.1, var.Th = 0, mean.Th =0, standa
              col = color, texts = colnames(dataMatrix), cex = 1)
     attr(ppoints, "geneNum") <- length(subset)
     pp<-ppoints
-    return(pp)
+    return(list(pp, percent))
   }
   if (method=="pca") {
     pca.result <- prcomp(t(dataMatrix))
@@ -97,12 +97,12 @@ pcaplot<-function (x, subset = NULL, cv.Th = 0.1, var.Th = 0, mean.Th =0, standa
       color <- 1
     }
     else {
-      if (!is.numeric(color)) {
-        allColor <- colors()
-        if (!all(is.element(color, allColor))) {
-          color <- as.numeric(factor(color, levels = unique(color)))
-        }
-      }
+#       if (!is.numeric(color)) {
+#         allColor <- colors()
+#         if (!all(is.element(color, allColor))) {
+#           color <- as.numeric(factor(color, levels = unique(color)))
+#         }
+#       }
     }
     require('rgl')
     plot3d(ppoints[, dimension[1]], ppoints[, dimension[2]], ppoints[,dimension[3]],
@@ -124,7 +124,7 @@ pcaplot<-function (x, subset = NULL, cv.Th = 0.1, var.Th = 0, mean.Th =0, standa
              col = color, texts = colnames(dataMatrix), cex = 1)
     }
     pp<-ppoints
-    return(pp)
+    return(list(pp = pp, percent = percent))
   }
   else {
     stop("the method has to be one of the three,\'cluster\',\'mds\' or \'pca\'")
