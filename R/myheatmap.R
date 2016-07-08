@@ -59,8 +59,8 @@ heatmap.my <- function(Exprs, sel=F, thres_mean, thres_var, numbreaks=100, col =
   if(rg_max > max(abs(c(Exprs_mean + 3*Exprs_sd, Exprs_mean - 3*Exprs_sd)))){
     rg_iqr <- max(abs(c(rg[2], rg[4])))
     bp <- c((breakratio[1]/sum(breakratio))*rg_diff - rg_iqr, rg_iqr - (breakratio[3]/sum(breakratio))*rg_diff)
-    bk <- c(seq(-rg_max, -rg_iqr, length= numbreaks), seq(-rg_iqr,bp[1],length = numbreaks), seq(bp[1],bp[2],length=numbreaks),seq(bp[2],rg_iqr,length=numbreaks), 
-            seq(rg_iqr, rg_max, length = numbreaks))
+    bk <- unique(c(seq(-rg_max, -rg_iqr, length= numbreaks), seq(-rg_iqr,bp[1],length = numbreaks), seq(bp[1],bp[2],length=numbreaks),seq(bp[2],rg_iqr,length=numbreaks), 
+            seq(rg_iqr, rg_max, length = numbreaks)))
     hmcols<- colorRampPalette(col)(length(bk)-1)
   }
   else{
