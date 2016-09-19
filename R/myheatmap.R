@@ -15,6 +15,7 @@ heatmap.my <- function(Exprs, sel=F, thres_mean, thres_var, numbreaks=100, col =
     Exprs_scale <- t(scale(t(Exprs)))
   else
     Exprs_scale <- Exprs
+  Exprs_scale[is.na(Exprs_scale)] <- min(Exprs_scale, na.rm = TRUE)
   # lmat is a matrix describing how the screen is to be broken up. By default, heatmap.2 divides the screen into a four element grid, so lmat is a 2x2 matrix. 
   # The number in each element of the matrix describes what order to plot the next four plots in. Heatmap.2 plots its elements in the following order:
   # 1 Heatmap,
@@ -67,6 +68,7 @@ heatmap.my <- function(Exprs, sel=F, thres_mean, thres_var, numbreaks=100, col =
     rg <- range(Exprs_scale, na.rm=T)
     bp <- c((breakratio[1]/sum(breakratio))*diff(rg) - rg_max, rg_max - (breakratio[3]/sum(breakratio))*diff(rg))
     bk <- c(seq(-rg_max,bp[1],length=numbreaks), seq(bp[1],bp[2],length=numbreaks),seq(bp[2],rg_max,length=numbreaks))
+    bk <- bk[!duplicated(bk)]
     hmcols<- colorRampPalette(col)(length(bk)-1)
   }
   heatmap.2(Exprs, Colv=Colv,Rowv=Rowv, dendrogram = dendrogram,trace='none',scale=scale ,density.info='none',

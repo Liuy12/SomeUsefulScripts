@@ -14,7 +14,7 @@ ensembl <- useMart("ensembl",dataset="hsapiens_gene_ensembl")
 ## list attributes you can retrive from
 listAttributes(ensembl)
 
-
+## retrive all gene symbols
 geneSymbols <- unique( getBM(attributes = "hgnc_symbol",
                                 values = "*", 
                                 mart = ensembl) )
@@ -22,5 +22,10 @@ geneSymbols <- unique( getBM(attributes = "hgnc_symbol",
 seq <- getSequence(id=geneSymbols$hgnc_symbol, type="hgnc_symbol", seqType="3utr", mart = ensembl)
 
 seq = getSequence(id="BRCA1", type="hgnc_symbol", seqType="peptide", mart = ensembl)
+
+## gene id conversion 
+results <- getBM(attributes = "hgnc_symbol",
+                 filters = "refseq_mrna", values = 'NM110332',
+                 mart = ensembl)
 
 
