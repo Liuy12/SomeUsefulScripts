@@ -1,0 +1,102 @@
+---
+title: "DE analysis report"
+author: Yuanhang (Leo) Liu
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## sample information
+
+```{r echo =FALSE, message=FALSE, warning=FALSE}
+sampleInfo <- data.table::fread('t2_vs_t1_sampleInfo.txt', data.table = F)
+samples <- data.frame(samplenum = paste0('sample', 1:nrow(sampleInfo)))
+sampleInfo <- cbind(samples, sampleInfo)
+DT::datatable(sampleInfo)
+```
+
+## botplot
+
+<img src="t2_vs_t1_boxplot.png" height="400px" width="600px" />
+
+## Correlation plot
+
+<img src="t2_vs_t1_corrplot.png" height="400px" width="600px" />
+
+## Heatmap of genes with high cv
+
+<img src="t2_vs_t1_heatmapHighcv.png" height="400px" width="600px" />
+
+## hierarchical clustering of samples
+
+<img src="t2_vs_t1_hclustHighcv.png" height="400px" width="600px" />
+
+## 2D PCA plot
+
+<img src="t2_vs_t1_pcaplot.png" height="400px" width="600px" />
+
+## 3D PCA plot interactive
+
+<iframe src="t2_vs_t1_pcaplot3d.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+
+## Number of DEGs by different cutoff
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+DEtab <- data.table::fread('t2_vs_t1_DEtab.txt', data.table = F)
+DT::datatable(DEtab)
+```
+
+## MA plot
+
+<img src="t2_vs_t1_MAplot.png" height="400px" width="600px" />
+
+## MA plot interactive
+
+<iframe src="t2_vs_t1_MAplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+
+## Volcano plot 
+
+<img src="t2_vs_t1_Volcanoplot.png" height="400px" width="600px" />
+
+## Volcano plot interactive
+
+<iframe src="t2_vs_t1_Volcanoplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+
+## Scatter plot
+
+<img src="t2_vs_t1_scatterplot.png" height="400px" width="600px" />
+
+
+## Scatter plot interactive
+
+<iframe src="t2_vs_t1_scatterplot.html" width=1000px height=500px allowtransparency="true" frameBorder="0"> </iframe>
+
+## Top DEGs
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+dataMat <- data.table::fread('t2_vs_t1_DEstat.txt', data.table = F)
+if(nrow(dataMat) >=1) dataMat <- dataMat %>% arrange(padj)
+dataMat1 <- dataMat[,c('GeneName', 'log2baseMean', 'log2FoldChange', 'Foldchange', 'pval', 'padj', 't.pval')]
+nshow <- ifelse(nrow(dataMat) >=10, 10, nrow(dataMat))
+if(nshow >=1) DT::datatable(dataMat1[1:nshow,])
+```
+
+## Access to all results files
+To access the files please refer to the following link: [results]()
+
+Particularly for normalized count table: [NormCounts]()
+
+For DE statistics of all genes: [DEStats_all]()
+
+For DE statistics of only DEGs: [DEStats_DE]()
+
+
+
+
