@@ -1,6 +1,11 @@
 
 #######################################################################################################
 #########################plot summerizing figure including top pos/neg enriched gene sets
+#### pos_path: path to .xls table for upregulated/positive genesets
+#### ngs_path: path to .xls table for downregulated/negative genesets
+#### pos_sel: a vector of upregulated geneset names
+#### neg_sel: a vector of downregulated geneset names
+#### outpath: path to output directory
 gseaSumPlot <- function(pos_path, neg_path, pos_sel, neg_sel, outpath){
   require(readxl)
   require(ggplot2) 
@@ -49,6 +54,16 @@ gseaSumPlot <- function(pos_path, neg_path, pos_sel, neg_sel, outpath){
 
 #######################################################################################################
 ######################### Generate heatmap including one selected gene sets for pos and neg each
+##### dataMatpath: path to normalized gene expression matrix
+##### testStatPath: path to DEA results, should contain one colume named: Foldchange. 
+################### Used to order column by correlation with fold change
+##### msigdbpath: gmt file for msigdb
+##### numgenes: number of top genes used to generate the heatmap
+##### upGSname: selected upregulated geneset name
+##### downGSname: selected downregulated geneset name
+##### colAnn: data.frame used to annotate columns/samples
+##### nAnn: number of gene annotation columns in dataMatpath
+##### rankCol: whether to rank columns based on correlation with fold change in testStatPath
 gseaHeatmap <- function(dataMatpath, testStatPath, msigdbpath, numgenes, upGSname,downGSname,colAnn, color=c('blue','white','red'), nAnno =6, rankCol=TRUE, outpath){
   require(GSA)
   require(NMF)
