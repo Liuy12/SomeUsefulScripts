@@ -1,17 +1,36 @@
 
 #######################################################################################################
 #########################plot summerizing figure including top pos/neg enriched gene sets
-gseaSumPlot <- function(pos_path, neg_path, topnum =5, outpath){
+gseaSumPlot <- function(pos_path, neg_path, pos_sel, neg_sel, outpath){
   require(readxl)
   require(ggplot2) 
 
   gseaResUp <- read.delim(pos_path, stringsAsFactors = F)
   gseaResDown <- read.delim(neg_path, stringsAsFactors = F)
   
-  gseaResUp <- gseaResUp[order(gseaResUp$NES, decreasing = T),]
-  gseaResDown <- gseaResDown[order(gseaResDown$NES, decreasing = F),]
-  tmp <- rbind(gseaResUp[1:topnum,],gseaResDown[1:topnum,])
-  
+  idx_up <- sapply(pos_sel, function(i) {
+    grep(paste0('^', i, '$'), gseaResUp$NAME)
+  })
+  print(idx_up)
+  cat('retrived ', length(idx_up), ' number of up-regulated gene-sets', '\n')
+  idx_down <- sapply(neg_sel, function(i) {
+    grep(paste0('^', i, '$'), gseaResDown$NAME)
+  })
+  print(idx_down)
+  cat('retrived ', length(idx_down), ' number of down-regulated gene-sets')
+  if(length(idx_up) != length(pos_sel) | length(idx_down) != length(neg_sel))
+    stop('Please check spelling of selected gene sets')
+  gseaResUp <- gseaResUp[idx_up,]
+  gseaResDown <- gseaResDown[idx_down,]
+  #gseaResUp <- gseaResUp[order(gseaResUp$NES, decreasing = T),]
+  #gseaResDown <- gseaResDown[order(gseaResDown$NES, decreasing = F),]
+  tmp <- rbind(gseaResUp,gseaResDown)
+  tmp$NAME <- sapply(tmp$NAME, function(i) {
+    sp <- strsplit(i, '_')[[1]]
+    sp <- sp[-1]
+    sp <- tolower(paste(sp, collapse = ' '))
+    sp <- paste(toupper(substr(sp, 1,1)), substr(sp,2,nchar(sp)), sep = '')
+  })
   # Plotting
   p <- ggplot(tmp, aes(NES, NAME)) +
     geom_point(aes(colour=FDR.q.val, size=SIZE)) +
@@ -24,13 +43,13 @@ gseaSumPlot <- function(pos_path, neg_path, topnum =5, outpath){
     #  expand_limits(x=c(-3,3)) +
     #  scale_x_continuous(breaks=c(-3,-2,-1,0,1,2,3)) +
     scale_y_discrete(limits=rev(tmp$NAME))
-  ggsave(paste0(outpath, '/gsea_top', 2*topnum, '.pdf'), p, width = 20, height = 10, useDingbats=FALSE)
+  ggsave(paste0(outpath, '/gsea_sel', '.pdf'), p, width = 15, height = 10, useDingbats=FALSE)
 }
 
 
 #######################################################################################################
 ######################### Generate heatmap including one selected gene sets for pos and neg each
-gseaHeatmap <- function(dataMatpath, testStatPath, msigdbpath, numgenes, upGSname,downGSname,colAnn, color, outpath){
+gseaHeatmap <- function(dataMatpath, testStatPath, msigdbpath, numgenes, upGSname,downGSname,colAnn, color=c('blue','white','red'), nAnno =6, rankCol=TRUE, outpath){
   require(GSA)
   require(NMF)
   dataMat <- data.table::fread(dataMatpath, data.table = F)
@@ -55,11 +74,11 @@ gseaHeatmap <- function(dataMatpath, testStatPath, msigdbpath, numgenes, upGSnam
   colAnn <- data.frame(Type=colAnn)
   annColors <- list(upGSname = c('black', 'white'),
                     downGSname = c('green','white'),
-                    Type = c('yellow', 'greenyellow'))
+                    Type = c('yellow', 'yellow4','greenyellow', 'springgreen4', 'springgreen')[1:length(unique(colAnn$Type))])
   # examine whether there are extreme values in the dataset
   # if extreme values are detected, then modified the color ratio 
   # to make heatmap appear more contract
-  Exprs_scale <- t(scale(t(dataMat_sel[,-c(1:6)]+0.1)))
+  Exprs_scale <- t(scale(t(dataMat_sel[,-c(1:nAnno)]+0.1)))
   Exprs_scale[is.na(Exprs_scale)] <- min(Exprs_scale, na.rm = TRUE)
   rg <- quantile(Exprs_scale,na.rm=T)
   rg_diff <- rg[4]-rg[2]
@@ -83,11 +102,16 @@ gseaHeatmap <- function(dataMatpath, testStatPath, msigdbpath, numgenes, upGSnam
     hmcols<- colorRampPalette(col)(length(bk)-1)
   }
   
-  tmp <- log2(dataMat_sel[,-c(1:6)]+0.1)
-  colrk <- order(sapply(1:(ncol(tmp)-6), function(i) cor(tmp[,i], testStats$Foldchange[c(or[1:numgenes], tail(or, numgenes))])), decreasing = F)
+  tmp <- log2(dataMat_sel[,-c(1:nAnno)]+0.1)
   nmf.options(grid.patch=TRUE)
-  pdf(paste0(outpath, '/gseaheatmap_', numgenes, '_genes.pdf'), height =4, width = 9)
-  aheatmap(log2(dataMat_sel[,-c(1:6)]+0.1)[,colrk], annRow = rowAnn, annCol = colAnn ,scale = 'row', labCol = NA, annColors = annColors, Rowv = NA, Colv = NA, color = hmcols, breaks = bk)
+  #pdf(paste0(outpath, '/gseaheatmap_', numgenes, '_genes.pdf'), height =4, width = 9, useDingbats = F)
+  pdf(paste0(outpath, '/gseaheatmap_', numgenes, '_genes.pdf'), useDingbats = F, height = 4, width = 5)
+  if(rankCol){
+    colrk <- order(sapply(1:(ncol(tmp)-nAnno), function(i) cor(tmp[,i], testStats$Foldchange[c(or[1:numgenes], tail(or, numgenes))])), decreasing = F)
+    aheatmap(log2(dataMat_sel[,-c(1:nAnno)][,colrk]+0.1), annRow = rowAnn, annCol = colAnn ,scale = 'row', labCol = NA, annColors = annColors, Rowv = NA, Colv = NA, color = hmcols, breaks = bk)
+  }
+  else
+    aheatmap(log2(dataMat_sel[,-c(1:nAnno)]+0.1), annRow = rowAnn, annCol = colAnn ,scale = 'row', labCol = NA, annColors = annColors, Rowv = NA, Colv = NA, color = hmcols, breaks = bk)
   dev.off()
 }
 
@@ -188,7 +212,7 @@ replotGSEA <- function(path, gene.set, class.name, metric.range, outpath=NULL) {
   gsea.es.profile <- as.numeric(gsea.es.profile)
   
   if(!is.null(outpath))
-    pdf(paste0(outpath, '/gsea_', gene.set, '.pdf'),width = 6.9, height = 6.9)
+    pdf(paste0(outpath, '/gsea_', gene.set, '.pdf'),width = 6.9, height = 6.9, useDingbats = F)
   ## Create GSEA plot
   # Save default for resetting
   def.par <- par(no.readonly = TRUE)
